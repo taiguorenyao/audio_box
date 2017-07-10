@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Data">
+
+    <resultMap id="AcessLogMap" type="AcessLog">
+        <id property="id" column="id"/>
+        <result property="uid" column="uid" />
+        <result property="ip" column="ip" />
+        <result property="addtime" column="access_time" />
+    </resultMap>
+
+    <resultMap id="AcessStatisticalMap" type="AcessStatistical">
+        <id property="id" column="id"/>
+        <result property="uid" column="uid" />
+        <result property="accessCount" column="access_count" />
+        <result property="addtime" column="add_time" />
+    </resultMap>
+
+    <insert id="saveAccessLog">
+        insert into access_log (uid,ip,access_time)
+        values (#{uid},#{ip},now());
+    </insert>
+
+
+    <select id="getClickListSize" resultType="java.lang.Integer">
+        <![CDATA[
+        select count(counts) from (select count(distinct uid) as counts from access_statistical where
+        add_time >= #{startTime} and add_time <= #{endTime}
+        group by uid) t
+        ]]>
+    </select>
+
+    <select id="getClickList" resultMap="AcessStatisticalMap">
+        <![CDATA[
+        select id,uid,sum(access_count) as access_count,add_time
+        from access_statistical where
+        add_time >= #{startTime} and add_time <= #{endTime}
+        group by uid order by access_count desc limit #{curPage},#{pageSize}
+        ]]>
+    </select>
+
+
+    <select id="getMyClickListSize" resultType="java.lang.Integer">
+        <![CDATA[
+        select count(counts) from ( select count(distinct uid) as counts from access_statistical where
+        add_time >= #{startTime} and add_time <= #{endTime}
+        and uid in (${uid})
+        group by uid) t
+        ]]>
+    </select>
+
+    <select id="getMyClickList" resultMap="AcessStatisticalMap">
+        <![CDATA[
+        select id,uid,sum(access_count) as access_count,add_time
+        from access_statistical where
+        add_time >= #{startTime} and add_time <= #{endTime}
+        and uid in (${uid})
+        group by uid order by access_count desc limit #{curPage},#{pageSize}
+        ]]>
+    </select>
+
+
+
+</mapper>
